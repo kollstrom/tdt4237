@@ -27,10 +27,15 @@
 - TBD
 
 ## Git Workflow
+
+#### Branches
 We will make branches for each of the vulnerabilities we are fixing. After cloning the repository, when we're about to start fixing an issue you make a new branch: `git checkout -b info-leakage`, where info-leakage is the branch name that corresponds to Emil's first area of responsibility. Use dashes `-` instead of spaces. 
 
+#### Merging to master
 Do not merge your branch straight to master after you're done with a fix. Make a pull request, and have someone review, test and merge it to master. 
 
-Rebase master into your local branch if there has been changes to the master branch after you branched out from it: `git rebase origin/master`.
+#### Rebasing before PR
+Rebase master into your local branch if there has been changes to the master branch after you branched out from it: `git rebase origin/master`. Do this before you make a pull request.
 
+#### Interactive rebasing to clean commit history
 If you want to clean up your messy commit history before you do a pull request, have a look at [interactive rebasing](https://robots.thoughtbot.com/git-interactive-rebase-squash-amend-rewriting-history). This is not a must.
