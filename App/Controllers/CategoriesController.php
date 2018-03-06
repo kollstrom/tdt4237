@@ -20,7 +20,7 @@ class CategoriesController extends Controller {
             'title'       => 'Categories',
             'description' => 'Categories - Just a simple inventory management system.',
             'page'        => 'categories',
-            'categories'  => $data
+            'categories'  => htmlspecialchars($data, ENT_QUOTES)
         ]);
     }
 
