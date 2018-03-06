@@ -37,7 +37,7 @@ class UsersController extends Controller {
             $validator->validUsername('username', $username, "Your username is not valid (no spaces, uppercase, special character)");
             $validator->availableUsername('username', $username, "Your username is not available");
             $validator->validEmail('email', $email, "Your email is not valid");
-            $validator->validPassword('password', $password, $password_verification, "You didn't write the same password twice");
+            $validator->samePassword('password', $password, $password_verification, "You didn't write the same password twice");
 
             if($validator->isValid()) {
                 $model = new UsersModel();
@@ -82,7 +82,9 @@ class UsersController extends Controller {
             $validator->availableUsername('username', $username, "Your username is not available");
             
             if ($validator->notEmpty('password',$password, "Your password can't be empty")){
-                $validator->validPassword('password2', $password, $password_verification, "You didn't write the same password twice");
+                if ($validator->validPassword('password2', $password, "Choose a different password. ")) {
+                    $validator->samePassword('password3', $password, $password_verification, "You didn't write the same password twice");
+                }
             }
             
             if($validator->isValid()) {
