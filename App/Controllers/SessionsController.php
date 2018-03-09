@@ -18,12 +18,12 @@ class SessionsController extends Controller {
             $password = isset($_POST['password']) ? $_POST['password'] : '';
             
             if($this->auth->checkCredentials($username, $password)) {
-                setcookie("user", $username);
-                setcookie("password",  $_POST['password']);
+                setcookie("user", $username,time()+1800,NULL, NULL, TRUE,TRUE );
+                setcookie("password",  $_POST['password'],time()+1800,NULL, NULL, TRUE,TRUE);
                 if ($this->userRep->getAdmin($username)){
-                    setcookie("admin", 'yes');
+                    setcookie("admin", 'yes',time()+1800,NULL, NULL, TRUE,TRUE);
                 }else{
-                    setcookie("admin", 'no');
+                    setcookie("admin", 'no',time()+1800,NULL, NULL, TRUE,TRUE);
                 }
                 $_SESSION['auth']       = $username;
                 $_SESSION['id']         = $this->userRep->getId($username);
