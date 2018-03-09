@@ -70,4 +70,24 @@ class ProductsModel extends Model {
                              LIMIT $count");
     }
 
+    public function userCreatedProduct($id){
+        /*$count = $this->query("SELECT COUNT(*)
+                             FROM {$this->table}
+                             WHERE products.user = '{$this->username}'
+                             AND products.id = {$id}");
+        if($count[0] == 1 ){
+            return true;
+        }else{
+            return false;
+        }*/
+
+        $count = 0;
+
+        foreach($this->query("SELECT * FROM {$this->table} WHERE user = '{$this->username}' AND products.id = {$id}") as $item) {
+            $count+= 1;
+        }
+
+        return $count>0;
+    }
+
 }

@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use \App\System\App;
+use App\System\Auth;
 use \App\System\ImageUpload;
 use \App\System\Settings;
 use \App\Controllers\Controller;
@@ -213,23 +214,28 @@ class ProductsController extends Controller {
         }
 
         else {
-            $model = new CategoriesModel();
-            $categories  = $model->all();
+            if($this -> checkUserCreatedProduct($id)){
+                $model = new CategoriesModel();
+                $categories  = $model->all();
 
-            $model2 = new ProductsModel();
-            $data   = $model2->find($id);
+                $model2 = new ProductsModel();
+                $data   = $model2->find($id);
 
-            $model3 = new RevisionsModel();
-            $revisions = $model3->revisions($id, 'products');
+                $model3 = new RevisionsModel();
+                $revisions = $model3->revisions($id, 'products');
 
-            $this->render('pages/products_edit.twig', [
-                'title'       => 'Edit product',
-                'description' => 'Products - Just a simple inventory management system.',
-                'page'        => 'products',
-                'revisions'   => $revisions,
-                'data'        => $data,
-                'categories'  => $categories
-            ]);
+                $this->render('pages/products_edit.twig', [
+                    'title'       => 'Edit product',
+                    'description' => 'Products - Just a simple inventory management system.',
+                    'page'        => 'products',
+                    'revisions'   => $revisions,
+                    'data'        => $data,
+                    'categories'  => $categories
+                ]);
+            }else{
+                App::error403();
+            }
+
         }
     }
 
@@ -244,14 +250,19 @@ class ProductsController extends Controller {
         }
 
         else {
-            $model = new ProductsModel();
-            $data  = $model->find($id);
-            $this->render('pages/products_delete.twig', [
-                'title'       => 'Delete product',
-                'description' => 'Products - Just a simple inventory management system.',
-                'page'        => 'products',
-                'data'        => $data
-            ]);
+            if($this -> checkUserCreatedProduct($id)){
+                $model = new ProductsModel();
+                $data  = $model->find($id);
+                $this->render('pages/products_delete.twig', [
+                    'title'       => 'Delete product',
+                    'description' => 'Products - Just a simple inventory management system.',
+                    'page'        => 'products',
+                    'data'        => $data
+                ]);
+            }else{
+                App::error403();
+            }
+
         }
     }
 
@@ -300,5 +311,12 @@ class ProductsController extends Controller {
     public function viewSQL($id) {
         echo var_dump($this->productRep->find($id)); die;
     }
-    
+
+    public function checkUserCreatedProduct($id){
+        $model14 = new ProductsModel();
+        $created = $model14 -> userCreatedProduct($id);
+        $auth = new Auth();
+        return ($created == true and $auth->checkCredentials($_COOKIE['user'], $_COOKIE['password']));
+    }
+
 }
