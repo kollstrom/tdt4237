@@ -309,7 +309,12 @@ class ProductsController extends Controller {
     }
     
     public function viewSQL($id) {
-        echo var_dump($this->productRep->find($id)); die;
+        $auth = new Auth();
+        if($auth ->isAdmin()){
+            echo var_dump($this->productRep->find($id)); die;
+        }else{
+            App::error403();
+        }
     }
 
     public function checkUserCreatedProduct($id){
