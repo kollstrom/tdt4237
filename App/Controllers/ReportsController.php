@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use \App\System\App;
+use App\System\Auth;
 use \App\System\FormValidator;
 use \App\System\Settings;
 use \App\System\Mailer;
@@ -90,15 +91,26 @@ class ReportsController extends Controller {
         }
 
         else {
-            $model = new ReportsModel();
-            $data = $model->find($id);
-            $this->render('pages/reports_delete.twig', [
-                'title'       => 'Delete report',
-                'description' => 'Reports - Just a simple inventory management system.',
-                'page'        => 'reports',
-                'data'        => $data
-            ]);
+            if($this -> checkUserCreatedReport($id)){
+                $model = new ReportsModel();
+                $data = $model->find($id);
+                $this->render('pages/reports_delete.twig', [
+                    'title'       => 'Delete report',
+                    'description' => 'Reports - Just a simple inventory management system.',
+                    'page'        => 'reports',
+                    'data'        => $data
+                ]);
+            }else{
+                App::error403();
+            }
+
         }
     }
 
+    public function checkUserCreatedReport($id){
+        $model14 = new ReportsModel();
+        $auth = new Auth();
+        $created = $model14 -> userCreatedReport($id);
+        return ($created == true and $auth->checkCredentials($_COOKIE['user'], $_COOKIE['password']));
+    }
 }
