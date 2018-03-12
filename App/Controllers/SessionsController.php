@@ -16,8 +16,15 @@ class SessionsController extends Controller {
             $username = isset($_POST['username']) ? $_POST['username'] : '';
             //$password = isset($_POST['password']) ? hash('sha1', Settings::getConfig()['salt'] . $_POST['password']) : '';
             $password = isset($_POST['password']) ? $_POST['password'] : '';
+
+            if ($this->userRep->getLocked($username) == true) {
+                $errors = [
+                    "This account is locked. Contact an admin to open it."
+                ];
+            }
             
-            if($this->auth->checkCredentials($username, $password)) {
+            else if($this->auth->checkCredentials($username, $password)) {
+                $this->userRep->resetLoginFails($username);
                 setcookie("user", $username);
                 setcookie("password",  $_POST['password']);
                 if ($this->userRep->getAdmin($username)){
@@ -34,9 +41,35 @@ class SessionsController extends Controller {
             }
 
             else {
-                $errors = [
-                    "Your username and your password don't match."
-                ];
+                // Authentication failed
+                $lastLoginAttempt = $this->userRep->getLastLoginAttempt($username);
+                if(is_null($lastLoginAttempt)) {
+                    $this->userRep->incrementLoginAttempts($username);
+                    $errors = [
+                        "Your username and your password don't match."
+                    ];
+                }
+                else {
+                    $dateTime = new \DateTime($lastLoginAttempt, new \DateTimeZone('Europe/Oslo'));
+                    $interval = $dateTime->diff(new \DateTime('now'));
+                    $minutes = $interval->days * 24 * 60;
+                    $minutes += $interval->h * 60;
+                    $minutes += $interval->i;
+
+                    if ($minutes < 10) {
+                        if ($this->userRep->getLoginFails($username) > 5) {
+                            $this->userRep->lockAccount($username);
+                        }
+                    }
+                    else {
+                        $this->userRep->resetLoginFails($username);
+                    }
+                    $this->userRep->incrementLoginAttempts($username);
+                    $errors = [
+                        "Your username and your password don't match."
+                    ];
+                }
+                $this->userRep->setLastLoginAttempt($username);
             }
         }
 
