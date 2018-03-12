@@ -33,11 +33,14 @@ class CommentsController extends Controller {
             $comment = $comment . $element->nodeValue;
         }
         foreach ($links as $link){
-            if (filter_var($link->getAttribute('href'), FILTER_VALIDATE_URL)) {
+            $href = $link->getAttribute('href');
+            if (filter_var($href, FILTER_VALIDATE_URL)) {
                 $text = $link->nodeValue;
                 $pos = strpos($comment, $text);
                 if ($pos > -1) {
-                    $comment = str_replace($text, '<a href="' . $link->getAttribute('href') . '">' . $text . '</a>', $comment);
+                    $comment = str_replace($text, '<a href="' .
+                        $href . '" onClick="return confirm(\'You are now navigating away from the site. Are you sure you want to do that?\')">' .
+                        $text . '</a>', $comment);
                 }
             }
         }
