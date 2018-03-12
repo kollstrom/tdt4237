@@ -12,6 +12,7 @@ use \App\Models\ProductsModel;
 use \App\Models\ReportsModel;
 use \App\System\FormValidator;
 use \App\Models\CommentsModel;
+use App\System\CSRF;
 
 class ProductsController extends Controller {
 
@@ -23,6 +24,8 @@ class ProductsController extends Controller {
     }
 
     public function index() {
+        $csrf = new CSRF();
+        $token = $csrf->generateToken('comment-add');
         $model = new ProductsModel();
         $value = $model->value();
         $count = $model->count();
@@ -57,7 +60,8 @@ class ProductsController extends Controller {
             'description' => 'Dashboard - Just a simple inventory management system.',
             'page'        => 'dashboard',
             'stats'       => $stats,
-            'comments'    => $comments
+            'comments'    => $comments,
+            'token'       => $token
         ]);
     }
 
@@ -77,6 +81,7 @@ class ProductsController extends Controller {
     }
 
     public function add() {
+        $csrf = new CSRF();
         if(!empty($_POST)) {
             $title       = isset($_POST['title']) ? $_POST['title'] : '';
             $description = isset($_POST['description']) ? $_POST['description'] : '';
@@ -93,7 +98,10 @@ class ProductsController extends Controller {
             $validator->isInteger('quantity', $quantity, "Your quantity must be a number");
             $validator->validImage('media', $media, "You didn't provided a media or it is invalid");
 
-            if($validator->isValid()) {
+            if(!($csrf->validateToken('product-add', $_POST['token']))){
+                App::errorCSRF();
+            }
+            elseif($validator->isValid()) {
                 $upload    = new ImageUpload();
                 $media_url = $upload->add($media);
 
@@ -113,6 +121,7 @@ class ProductsController extends Controller {
             }
 
             else {
+                $token = $csrf->generateToken('product-add');
                 $model = new CategoriesModel();
                 $categories  = $model->all($_COOKIE['user']);
                 $this->render('pages/products_add.twig', [
@@ -126,12 +135,15 @@ class ProductsController extends Controller {
                         'description' => $description,
                         'price'       => $price,
                         'quantity'    => $quantity
-                    ]
+                    ],
+                    'token'       => $token
                 ]);
             }
         }
 
         else {
+            $token = $csrf->generateToken('product-add');
+
             $model = new CategoriesModel();
             $categories  = $model->all($_COOKIE['user']);
             
@@ -140,7 +152,8 @@ class ProductsController extends Controller {
                     'title'       => 'Add product',
                     'description' => 'Products - Just a simple inventory management system.',
                     'page'        => 'products',
-                    'categories'  => $categories
+                    'categories'  => $categories,
+                    'token'       => $token
                 ]);
             }else{
                 $this->render('pages/products_add.twig', [
@@ -154,6 +167,7 @@ class ProductsController extends Controller {
     }
 
     public function edit($id) {
+        $csrf = new CSRF();
         if(!empty($_POST)) {
             $title       = isset($_POST['title']) ? $_POST['title'] : '';
             $description = isset($_POST['description']) ? $_POST['description'] : '';
@@ -168,7 +182,10 @@ class ProductsController extends Controller {
             $validator->isNumeric('price', $price, "Your price must be a number");
             $validator->isInteger('quantity', $quantity, "Your quantity must be a number");
 
-            if($validator->isValid()) {
+            if(!($csrf->validateToken('product-edit', $_POST['token']))){
+                App::errorCSRF();
+            }
+            elseif($validator->isValid()) {
                 $model = new ProductsModel();
                 $model->update($id, [
                     'title'       => $title,
@@ -187,15 +204,13 @@ class ProductsController extends Controller {
 
                 App::redirect('products');
             }
-
             else {
+                $token = $csrf->generateToken('product-edit');
                 $model = new CategoriesModel();
                 $categories  = $model->all();
-
                 $model2 = new RevisionsModel();
                 $revisions = $model2->revisions($id, 'products');
-
-                $this->render('pages/products_add.twig', [
+                $this->render('pages/products_edit.twig', [
                     'title'       => 'Edit product',
                     'description' => 'Products - Just a simple inventory management system.',
                     'page'        => 'products',
@@ -208,13 +223,16 @@ class ProductsController extends Controller {
                         'price'       => $price,
                         'quantity'    => $quantity,
                         'category'    => $category
-                    ]
+                    ],
+                    'token'       => $token
                 ]);
             }
         }
 
         else {
             if($this -> checkUserCreatedProduct($id)){
+                $token = $csrf->generateToken('product-edit');
+
                 $model = new CategoriesModel();
                 $categories  = $model->all();
 
@@ -230,7 +248,8 @@ class ProductsController extends Controller {
                     'page'        => 'products',
                     'revisions'   => $revisions,
                     'data'        => $data,
-                    'categories'  => $categories
+                    'categories'  => $categories,
+                    'token'       => $token
                 ]);
             }else{
                 App::error403();
@@ -240,24 +259,32 @@ class ProductsController extends Controller {
     }
 
     public function delete($id) {
-        if(!empty($_POST)) {
-            $model = new ProductsModel();
-            $file  = $model->find($id)->media;
-            unlink(__DIR__ . '/../../public/uploads/' . $file);
-            $model->delete($id);
+        $csrf = new CSRF();
+        if(!empty($_POST) ) {
+            if($csrf->validateToken('product-delete', $_POST['token'])){
+                $model = new ProductsModel();
+                $file  = $model->find($id)->media;
+                unlink(__DIR__ . '/../../public/uploads/' . $file);
+                $model->delete($id);
 
-            App::redirect('products');
+                App::redirect('products');
+            }else{
+                App::errorCSRF();
+            }
+
         }
 
         else {
             if($this -> checkUserCreatedProduct($id)){
+                $token = $csrf->generateToken('product-delete');
                 $model = new ProductsModel();
                 $data  = $model->find($id);
                 $this->render('pages/products_delete.twig', [
                     'title'       => 'Delete product',
                     'description' => 'Products - Just a simple inventory management system.',
                     'page'        => 'products',
-                    'data'        => $data
+                    'data'        => $data,
+                    'token'       => $token
                 ]);
             }else{
                 App::error403();

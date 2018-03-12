@@ -90,6 +90,12 @@ class App {
         $controller->render('pages/403.twig', []);
     }
 
+    public static function errorCSRF() {
+        header("HTTP/1.0 403 Forbidden");
+        $controller = new \App\Controllers\Controller();
+        $controller->render('pages/CSRF.twig', []);
+    }
+
     public static function redirect($path = '') {
         $location = 'Location: ' . Settings::getConfig()['url'] . $path;
         header($location);
