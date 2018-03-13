@@ -6,6 +6,8 @@ use \App\Controllers\Controller;
 use \DateTime;
 use App\System\App;
 use App\System\CSRF;
+use DOMDocument;
+
 
 class CommentsController extends Controller {
     
@@ -20,7 +22,7 @@ class CommentsController extends Controller {
                 $model->create([
                     'created_at' => date('Y-m-d H:i:s'),
                     'user'       => $_COOKIE['user'],
-                    'text'       => htmlspecialchars($text, ENT_QUOTES)
+                    'text'       => $this->sanitizeText($text)
                 ]);
 
                 App::redirect('dashboard');
@@ -32,4 +34,27 @@ class CommentsController extends Controller {
             }
 
        }
+
+    public function sanitizeText($text) {
+        $dom = new DOMDocument;
+        @$dom->loadHTML($text);
+        $links = $dom->getElementsByTagName('a');
+        $comment = '';
+        foreach ($dom->childNodes as $element) {
+            $comment = $comment . $element->nodeValue;
+        }
+        foreach ($links as $link){
+            $href = $link->getAttribute('href');
+            if (filter_var($href, FILTER_VALIDATE_URL)) {
+                $text = $link->nodeValue;
+                $pos = strpos($comment, $text);
+                if ($pos > -1) {
+                    $comment = str_replace($text, '<a href="' .
+                        $href . '" onClick="return confirm(\'You are now navigating away from the site. Are you sure you want to do that?\')">' .
+                        $text . '</a>', $comment);
+                }
+            }
+        }
+        return $comment;
     }
+}
