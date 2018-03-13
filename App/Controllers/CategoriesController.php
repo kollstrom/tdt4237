@@ -21,7 +21,7 @@ class CategoriesController extends Controller {
             'title'       => 'Categories',
             'description' => 'Categories - Just a simple inventory management system.',
             'page'        => 'categories',
-            'categories'  => htmlspecialchars($data, ENT_QUOTES)
+            'categories'  => $data
         ]);
     }
 
@@ -37,8 +37,8 @@ class CategoriesController extends Controller {
             if($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->create([
-                    'title'       => $title,
-                    'description' => $description,
+                    'title'       => htmlspecialchars($title, ENT_QUOTES),
+                    'description' => htmlspecialchars($description, ENT_QUOTES),
                     'created_at'  => date('Y-m-d H:i:s'),
                     'user'        => $_COOKIE['user']
                 ]);
@@ -81,8 +81,8 @@ class CategoriesController extends Controller {
             if($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->update($id, [
-                    'title'       => $title,
-                    'description' => $description
+                    'title'       => htmlspecialchars($title, ENT_QUOTES),
+                    'description' => htmlspecialchars($description, ENT_QUOTES)
                 ]);
 
                 $revisions = new RevisionsModel();
