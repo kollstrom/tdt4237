@@ -122,6 +122,11 @@ class FormValidator {
                 return;
             }
 
+            if(!exif_imagetype($value['tmp_name'])) {
+                $this->errors[$element] = $message;
+                return;
+            }
+
             if($value['size'] > 1000000) {
                 $this->errors[$element] = "Your media is too big (> 1Mo)";
                 return;

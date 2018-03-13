@@ -9,6 +9,7 @@ use \App\Controllers\Controller;
 use \App\Models\CategoriesModel;
 use \App\Models\RevisionsModel;
 use \DateTime;
+use App\System\Auth;
 
 class CategoriesController extends Controller {
 
@@ -20,7 +21,7 @@ class CategoriesController extends Controller {
             'title'       => 'Categories',
             'description' => 'Categories - Just a simple inventory management system.',
             'page'        => 'categories',
-            'categories'  => htmlspecialchars($data, ENT_QUOTES)
+            'categories'  => $data
         ]);
     }
 
@@ -36,8 +37,8 @@ class CategoriesController extends Controller {
             if($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->create([
-                    'title'       => $title,
-                    'description' => $description,
+                    'title'       => htmlspecialchars($title, ENT_QUOTES),
+                    'description' => htmlspecialchars($description, ENT_QUOTES),
                     'created_at'  => date('Y-m-d H:i:s'),
                     'user'        => $_COOKIE['user']
                 ]);
@@ -80,8 +81,8 @@ class CategoriesController extends Controller {
             if($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->update($id, [
-                    'title'       => $title,
-                    'description' => $description
+                    'title'       => htmlspecialchars($title, ENT_QUOTES),
+                    'description' => htmlspecialchars($description, ENT_QUOTES)
                 ]);
 
                 $revisions = new RevisionsModel();
@@ -109,23 +110,29 @@ class CategoriesController extends Controller {
                         'description' => $description
                     ]
                 ]);
+
             }
         }
 
         else {
-            $model = new CategoriesModel();
-            $data = $model->find($id);
+            if($this -> checkUserCreatedCategory($id)){
+                $model = new CategoriesModel();
+                $data = $model->find($id);
 
-            $model2    = new RevisionsModel();
-            $revisions = $model2->revisions($id, 'categories');
+                $model2    = new RevisionsModel();
+                $revisions = $model2->revisions($id, 'categories');
 
-            $this->render('pages/categories_edit.twig', [
-                'title'       => 'Edit category',
-                'description' => 'Categories - Just a simple inventory management system.',
-                'page'        => 'categories',
-                'revisions'   => $revisions,
-                'data'        => $data
-            ]);
+                $this->render('pages/categories_edit.twig', [
+                    'title'       => 'Edit category',
+                    'description' => 'Categories - Just a simple inventory management system.',
+                    'page'        => 'categories',
+                    'revisions'   => $revisions,
+                    'data'        => $data
+                ]);
+            }else{
+                App::error403();
+            }
+
         }
     }
 
@@ -144,15 +151,20 @@ class CategoriesController extends Controller {
         }
 
         else {
-            $model = new CategoriesModel($_COOKIE['user']);
-            $data = $model->find($id);
-            $this->render('pages/categories_delete.twig', [
-                'title'       => 'Delete category',
-                'description' => 'Categories - Just a simple inventory management system.',
-                'page'        => 'categories',
-                'data'        => $data,
-                'products'    => $products
-            ]);
+            if($this -> checkUserCreatedCategory($id)){
+                $model = new CategoriesModel($_COOKIE['user']);
+                $data = $model->find($id);
+                $this->render('pages/categories_delete.twig', [
+                    'title'       => 'Delete category',
+                    'description' => 'Categories - Just a simple inventory management system.',
+                    'page'        => 'categories',
+                    'data'        => $data,
+                    'products'    => $products
+                ]);
+            }else{
+                App::error403();
+            }
+
         }
     }
 
@@ -188,4 +200,12 @@ class CategoriesController extends Controller {
             echo json_encode($data);
         }
     }
+
+    public function checkUserCreatedCategory($id){
+        $model14 = new CategoriesModel();
+        $auth = new Auth();
+        $created = $model14 -> userCreatedCategory($id);
+        return ($created == true and $auth->checkCredentials($_COOKIE['user'], $_COOKIE['password']));
+    }
+
 }

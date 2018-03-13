@@ -33,4 +33,12 @@ class ReportsModel extends Model {
         return $name;
     }
 
+    public function userCreatedReport($id){
+        $count = 0;
+        foreach($this->query("SELECT * FROM {$this->table} WHERE user = '{$this->username}' AND reports.id = {$id}") as $item) {
+            $count+= 1;
+        }
+        return $count>0;
+    }
+
 }

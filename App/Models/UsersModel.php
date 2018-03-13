@@ -28,7 +28,7 @@ class UsersModel extends Model {
     }
     
     public function getUserRow($username){
-        return App::getDb()->query('SELECT * FROM users WHERE username = "' . $username .'"', true);
+        return App::getDb()->query('SELECT * FROM users WHERE username = "' . $username.'"', true);
     }
     
     public function getPasswordHash($username){
@@ -49,6 +49,45 @@ class UsersModel extends Model {
     public function getAdmin($username){
         $userRow = $this->getUserRow($username);
         return $userRow->admin;
+    }
+
+    public function getLocked($username) {
+        return $this->getUserRow($username)->locked;
+    }
+
+    public function getLastLoginAttempt($username) {
+        return $this->getUserRow($username)->last_login_attempt;
+    }
+
+    public function getLoginFails($username) {
+        return $this->getUserRow($username)->login_fails;
+    }
+
+    public function incrementLoginAttempts($username) {
+        $userRow = $this->getUserRow($username);
+        $loginFails = $userRow->login_fails;
+        if (is_null($loginFails)) {
+            $this->resetLoginFails($username);
+        }
+        else {
+            App::getDb()->execute('UPDATE users SET login_fails = login_fails + 1 WHERE username = "'
+            . $username. '"');
+        }
+    }
+
+    public function resetLoginFails($username) {
+        App::getDb()->execute('UPDATE users SET login_fails = 0 WHERE username = "' .$username. '"');
+    }
+
+    public function setLastLoginAttempt($username) {
+        $lastLoginAttempt = new \DateTime("now", new \DateTimeZone('Europe/Oslo'));
+        $attempt = $lastLoginAttempt->format('Y-m-d H:i:s');
+        App::getDb()->execute('UPDATE users SET last_login_attempt = "'. $attempt . '" WHERE username = "'
+            . $username. '"');
+    }
+
+    public function lockAccount($username) {
+        App::getDb()->execute('UPDATE users SET locked = 1 WHERE username = "'.$username .'"');
     }
 
 }
