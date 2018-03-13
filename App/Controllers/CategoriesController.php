@@ -10,6 +10,7 @@ use \App\Models\CategoriesModel;
 use \App\Models\RevisionsModel;
 use \DateTime;
 use App\System\Auth;
+use App\System\CSRF;
 
 class CategoriesController extends Controller {
 
@@ -26,6 +27,7 @@ class CategoriesController extends Controller {
     }
 
     public function add() {
+        $csrf = new CSRF();
         if(!empty($_POST)) {
             $title       = isset($_POST['title']) ? $_POST['title'] : '';
             $description = isset($_POST['description']) ? $_POST['description'] : '';
@@ -34,7 +36,10 @@ class CategoriesController extends Controller {
             $validator->notEmpty('title', $title, "Your title must not be empty");
             $validator->notEmpty('description', $description, "Your description must not be empty");
 
-            if($validator->isValid()) {
+            if(!($csrf->validateToken('category-add', $_POST['token']))){
+                App::errorCSRF();
+            }
+            elseif($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->create([
                     'title'       => htmlspecialchars($title, ENT_QUOTES),
@@ -45,8 +50,8 @@ class CategoriesController extends Controller {
 
                 App::redirect('categories');
             }
-
             else {
+                $token = $csrf->generateToken('category-add');
                 $this->render('pages/categories_add.twig', [
                     'title'       => 'Add category',
                     'description' => 'Categories - Just a simple inventory management system.',
@@ -55,21 +60,25 @@ class CategoriesController extends Controller {
                     'data'        => [
                         'title'       => $title,
                         'description' => $description
-                    ]
+                    ],
+                    'token'       => $token
                 ]);
             }
         }
 
         else {
+            $token = $csrf->generateToken('category-add');
             $this->render('pages/categories_add.twig', [
                 'title'       => 'Add category',
                 'description' => 'Categories - Just a simple inventory management system.',
-                'page'        => 'categories'
+                'page'        => 'categories',
+                'token'       => $token
             ]);
         }
     }
 
     public function edit($id) {
+        $csrf = new CSRF();
         if(!empty($_POST)) {
             $title       = isset($_POST['title']) ? $_POST['title'] : '';
             $description = isset($_POST['description']) ? $_POST['description'] : '';
@@ -78,7 +87,10 @@ class CategoriesController extends Controller {
             $validator->notEmpty('title', $title, "Your title must not be empty");
             $validator->notEmpty('description', $description, "Your description must not be empty");
 
-            if($validator->isValid()) {
+            if(!($csrf->validateToken('category-edit', $_POST['token']))){
+                App::errorCSRF();
+            }
+            elseif($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->update($id, [
                     'title'       => htmlspecialchars($title, ENT_QUOTES),
@@ -96,6 +108,7 @@ class CategoriesController extends Controller {
             }
 
             else {
+                $token = $csrf->generateToken('category-edit');
                 $model = new RevisionsModel();
                 $revisions = $model->revisions($id, 'categories');
 
@@ -108,7 +121,8 @@ class CategoriesController extends Controller {
                     'data'        => [
                         'title'       => $title,
                         'description' => $description
-                    ]
+                    ],
+                    'token'       => $token
                 ]);
 
             }
@@ -116,6 +130,7 @@ class CategoriesController extends Controller {
 
         else {
             if($this -> checkUserCreatedCategory($id)){
+                $token = $csrf->generateToken('category-edit');
                 $model = new CategoriesModel();
                 $data = $model->find($id);
 
@@ -127,7 +142,8 @@ class CategoriesController extends Controller {
                     'description' => 'Categories - Just a simple inventory management system.',
                     'page'        => 'categories',
                     'revisions'   => $revisions,
-                    'data'        => $data
+                    'data'        => $data,
+                    'token'       => $token
                 ]);
             }else{
                 App::error403();
@@ -137,21 +153,28 @@ class CategoriesController extends Controller {
     }
 
     public function delete($id) {
+        $csrf = new CSRF();
         $model2 = new ProductsModel($_COOKIE['user']);
         $products = $model2->getProductsByCategoryId($id);
-        
+
         if(!empty($_POST)) {
-            foreach($products as $product){
-                $model2->delete($product->id);
+            if($csrf->validateToken('category-delete', $_POST['token'])){
+                foreach($products as $product){
+                    $model2->delete($product->id);
+                }
+
+                $model = new CategoriesModel();
+                $model->delete($id);
+                App::redirect('categories');
+            }else{
+                App::errorCSRF();
             }
-            
-            $model = new CategoriesModel();
-            $model->delete($id);
-            App::redirect('categories');
+
         }
 
         else {
             if($this -> checkUserCreatedCategory($id)){
+                $token = $csrf->generateToken('category-delete');
                 $model = new CategoriesModel($_COOKIE['user']);
                 $data = $model->find($id);
                 $this->render('pages/categories_delete.twig', [
@@ -159,7 +182,8 @@ class CategoriesController extends Controller {
                     'description' => 'Categories - Just a simple inventory management system.',
                     'page'        => 'categories',
                     'data'        => $data,
-                    'products'    => $products
+                    'products'    => $products,
+                    'token'       => $token
                 ]);
             }else{
                 App::error403();

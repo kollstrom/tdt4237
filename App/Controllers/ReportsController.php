@@ -9,6 +9,7 @@ use \App\System\Mailer;
 use \App\Controllers\Controller;
 use \App\Models\ReportsModel;
 use \DateTime;
+use App\System\CSRF;
 
 class ReportsController extends Controller {
 
@@ -25,12 +26,16 @@ class ReportsController extends Controller {
     }
 
     public function add() {
+        $csrf = new CSRF();
         if(!empty($_POST)) {
             $title     = isset($_POST['title']) ? $_POST['title'] : '';
             $validator = new FormValidator();
             $validator->notEmpty('title', $title, "Your title must not be empty");
 
-            if($validator->isValid()) {
+            if(!($csrf->validateToken('report-add', $_POST['token']))){
+                App::errorCSRF();
+            }
+            elseif($validator->isValid()) {
                 $model = new ReportsModel();
                 $file  = $model->generate();
                 $model->create([
@@ -59,6 +64,7 @@ class ReportsController extends Controller {
             }
 
             else {
+                $token = $csrf->generateToken('report-add');
                 $this->render('pages/reports_add.twig', [
                     'title'       => 'Add report',
                     'description' => 'Reports - Just a simple inventory management system.',
@@ -66,39 +72,50 @@ class ReportsController extends Controller {
                     'errors'      => $validator->getErrors(),
                     'data'        => [
                         'title'       => $title,
-                    ]
+                    ],
+                    'token'       => $token
                 ]);
             }
         }
 
         else {
+            $token = $csrf->generateToken('report-add');
             $this->render('pages/reports_add.twig', [
                 'title'       => 'Add report',
                 'description' => 'Reports - Just a simple inventory management system.',
-                'page'        => 'reports'
+                'page'        => 'reports',
+                'token'       => $token
             ]);
         }
     }
 
     public function delete($id) {
+        $csrf = new CSRF();
         if(!empty($_POST)) {
-            $model = new ReportsModel();
-            $file  = $model->find($id)->file;
-            unlink(__DIR__ . '/../../public/uploads/' . $file);
-            $model->delete($id);
+            if($csrf->validateToken('report-delete', $_POST['token'])){
+                $model = new ReportsModel();
+                $file  = $model->find($id)->file;
+                unlink(__DIR__ . '/../../public/uploads/' . $file);
+                $model->delete($id);
 
-            App::redirect('reports');
+                App::redirect('reports');
+            }else{
+                App::errorCSRF();
+            }
+
         }
 
         else {
             if($this -> checkUserCreatedReport($id)){
+                $token = $csrf->generateToken('report-delete');
                 $model = new ReportsModel();
                 $data = $model->find($id);
                 $this->render('pages/reports_delete.twig', [
                     'title'       => 'Delete report',
                     'description' => 'Reports - Just a simple inventory management system.',
                     'page'        => 'reports',
-                    'data'        => $data
+                    'data'        => $data,
+                    'token'       => $token
                 ]);
             }else{
                 App::error403();

@@ -5,14 +5,18 @@ use App\Models\CommentsModel;
 use \App\Controllers\Controller;
 use \DateTime;
 use App\System\App;
+use App\System\CSRF;
 use DOMDocument;
+
 
 class CommentsController extends Controller {
     
     protected $table = "comments";
 
     public function add() {
+        $csrf = new CSRF();
         if(!empty($_POST)){
+            if($csrf->validateToken('comment-add', $_POST['token'])){
                 $text  = isset($_POST['comment']) ? $_POST['comment'] : '';
                 $model = new CommentsModel;
                 $model->create([
@@ -20,8 +24,15 @@ class CommentsController extends Controller {
                     'user'       => $_COOKIE['user'],
                     'text'       => $this->sanitizeText($text)
                 ]);
+
+                App::redirect('dashboard');
+
+            }else{
+                App::errorCSRF();
             }
-         App::redirect('dashboard');
+
+            }
+
        }
 
     public function sanitizeText($text) {
