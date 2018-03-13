@@ -81,7 +81,7 @@ class UsersController extends Controller {
         }
     }
     
-    public function registrationIsValid($validator, $username, $password, $password_verification): bool { 
+    public function registrationIsValid($validator, $username, $password, $password_verification, $email): bool { 
         
             if ($validator->notEmpty('username',$username, "Your username can't be empty")){
                 $validator->validUsername('username2', $username, "Your username is not valid (no spaces, uppercase, special character)");
@@ -94,20 +94,39 @@ class UsersController extends Controller {
                     $validator->samePassword('password3', $password, $password_verification, "You didn't write the same password twice");
                 }
             }
+			
+			if ($validator->notEmpty('email', $email, "Please provide an email address")){
+                $validator->validEmail('email2', $email, "The provided email address is invalid");
+            }
             
             if($validator->isValid()) {
+				$payload = App::getTwig()->render('mail_new.twig', [
+                   'username'    => $username,
+                    'password'    => $password,
+                    'title'       => Settings::getConfig()['name'],
+                    'description' => Settings::getConfig()['description'],
+                    'link'        => Settings::getConfig()['url'] . 'signin'
+                ]);
+				
+				$mailer = new Mailer();
+				$mailer->setFrom(Settings::getConfig()['mail']['from'], 'Mailer');
+				$mailer->addAddress($email);
+				$mailer->Subject = 'Hello ' . $username . '! Registration successful';
+                $mailer->msgHTML($payload);
+                $mailer->send();
                 return true;
             }else{
                 return false;
             }
     }
     
-    public function createNewUser($username, $password, $password_verification){
+    public function createNewUser($username, $password, $password_verification, $email){
         $model = new UsersModel();
         
                 $model->create([
                     'username'   => $username,
                     'password'   => hash('sha256', Settings::getConfig()['salt'] . $password),
+					'email'      => $email,
                     'created_at' => date('Y-m-d H:i:s'),
                     'admin'      => 0
                 ]);
@@ -120,16 +139,16 @@ class UsersController extends Controller {
         $validator = New FormValidator;
         if(!empty($_POST)) {
             $username              = isset($_POST['username']) ? $_POST['username'] : '';
+			$email                 = isset($_POST['email']) ? $_POST['email'] : '';
             $password              = isset($_POST['password']) ? $_POST['password'] : '';
             $password_verification = isset($_POST['password_verification']) ? $_POST['password_verification'] : '';
 
             if(!($csrf->validateToken('register', $_POST['token']))){
                 App::errorCSRF();
             }
-            elseif($this->registrationIsValid($validator, $username, $password, $password_verification)) {
+            elseif($this->registrationIsValid($validator, $username, $password, $password_verification, $email)) {
                 $token = $csrf->generateToken('register');
-                $this->createNewUser($username, $password, $password_verification);
-                
+                $this->createNewUser($username, $password, $password_verification, $email);
                 $this->render('pages/registration.twig', [
                 'title'       => 'Registrate',
                 'description' => 'Registrate a new user',
