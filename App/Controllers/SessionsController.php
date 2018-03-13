@@ -20,11 +20,6 @@ class SessionsController extends Controller {
             if($this->auth->checkCredentials($username, $password)) {
                 setcookie("user", $username);
                 setcookie("password",  $_POST['password']);
-                if ($this->userRep->getAdmin($username)){
-                    setcookie("admin", 'yes');
-                }else{
-                    setcookie("admin", 'no');
-                }
                 $_SESSION['auth']       = $username;
                 $_SESSION['id']         = $this->userRep->getId($username);
                 $_SESSION['email']      = $this->userRep->getEmail($username);

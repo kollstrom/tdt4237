@@ -30,7 +30,7 @@ class Auth{
     
     public function isAdmin(){
         if ($this->isLoggedIn()){
-            if ($_COOKIE['admin'] === 'yes'){
+            if($this->userRep->getAdmin($_COOKIE['user'])){
                 return true;
             }else{
                 return false;
@@ -39,14 +39,14 @@ class Auth{
     }
     
     public function isLoggedIn(){
-        if (isset($_COOKIE['user'])){
+        if (isset($_COOKIE['user']) and $this->checkCredentials($_COOKIE['user'], $_COOKIE['password'])){
             return true;
         }
     }
     
     public function isAdminPage($template){
         if (strpos($template, 'admin') == '6'){
-            return true;;
+            return true;
         }else{
             return false;
         }
