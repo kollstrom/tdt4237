@@ -18,10 +18,10 @@ class Auth{
         if ($user === false) {
             return false;
         }
-        
-        $passwordHash = hash('sha256', Settings::getConfig()['salt'] . $password);
-        
-        if ($passwordHash === $this->userRep->getPasswordhash($username)){
+
+
+
+        if ($password === $this->userRep->getPasswordhash($username)){
             return true;
         }else{
             return false;

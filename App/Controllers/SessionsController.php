@@ -19,8 +19,8 @@ class SessionsController extends Controller {
             if($csrf->validateToken('log-in', $_POST['token'])){
 
                 $username = isset($_POST['username']) ? $_POST['username'] : '';
-                //$password = isset($_POST['password']) ? hash('sha1', Settings::getConfig()['salt'] . $_POST['password']) : '';
-                $password = isset($_POST['password']) ? $_POST['password'] : '';
+                $password = isset($_POST['password']) ? hash('sha256', Settings::getConfig()['salt'] . $_POST['password']) : '';
+
 
                 if ($this->userRep->getLocked($username) == true) {
                     $errors = [
@@ -30,7 +30,7 @@ class SessionsController extends Controller {
                 else if($this->auth->checkCredentials($username, $password)) {
                     $this->userRep->resetLoginFails($username);
                     setcookie("user", $username,0,NULL, NULL, FALSE,TRUE );
-                    setcookie("password",  $_POST['password'],0,NULL, NULL, FALSE,TRUE);
+                    setcookie("password",  $password,0,NULL, NULL, FALSE,TRUE);
                     $_SESSION['auth']       = $username;
                     $_SESSION['id']         = $this->userRep->getId($username);
                     $_SESSION['email']      = $this->userRep->getEmail($username);

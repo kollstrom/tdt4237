@@ -13,7 +13,7 @@ dev:
     debug: true
     twig:
         cache: false
-    salt: 'test'
+    salt: 'dishwasher'
     mail:
         from: 'root@root.com'
         host: 'localhost'
@@ -34,7 +34,7 @@ prod:
     debug: false
     twig:
         cache: false
-    salt: 'test'
+    salt: 'dishwasher'
     mail:
         from: 'root@root.com'
         host: 'localhost'
