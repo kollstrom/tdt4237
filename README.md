@@ -1,5 +1,13 @@
 # TDT4237 Software Security - Group 21
 
+## Tables that need modification
+In order for the fixes to work there are a couple of columns in the user table that needs to be added to the database:
+```
+alter table users add column last_login_attempt varchar(255);
+alter table users add column login_fails int(1);
+alter table users add column locked boolean;
+```
+
 ## Distribution of vulnerability fixing
 
 ### Emil
@@ -10,6 +18,7 @@
 - Stored xss
 - Make github project
 - Git workflow description
+- Clickable links warning
 
 ### Daniel
 - Bypassing authentication
@@ -20,11 +29,12 @@
 ### Olivier
 - Session fixation
 - Session timeout
-- Weak hash,
+- Weak hash
 - File inclusion
 
 ### Eirik
-- TBD
+- SQL injection
+- Email verification
 
 ## Git Workflow
 
