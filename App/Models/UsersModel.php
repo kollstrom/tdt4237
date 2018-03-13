@@ -28,7 +28,7 @@ class UsersModel extends Model {
     }
     
     public function getUserRow($username){
-        return App::getDb()->query('SELECT * FROM users WHERE username = "' . $username.'"', true);
+        return App::getDb()->prepare('SELECT * FROM users WHERE username = "?"', array($username), (true);
     }
     
     public function getPasswordHash($username){

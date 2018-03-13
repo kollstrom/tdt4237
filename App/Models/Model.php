@@ -22,7 +22,7 @@ class Model {
     }
 
     public function find($id) {
-        return $this->query("SELECT * FROM {$this->table} WHERE id = {$id}", null, true);
+        return $this->query("SELECT * FROM {$this->table} WHERE id = ?", array($id), true);
     }
 
     public function update($id, $fields) {

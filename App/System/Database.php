@@ -21,7 +21,7 @@ class Database {
 
     private function getPDO() {
         if($this->pdo === null) {
-            $this->pdo = new PDO("mysql:dbname={$this->db_name};host={$this->db_host}", $this->db_user, $this->db_password);
+            $this->pdo = new PDO("mysql:dbname={$this->db_name};host={$this->db_host};charset=gbk", $this->db_user, $this->db_password);
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
         }
