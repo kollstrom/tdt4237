@@ -6,8 +6,6 @@ use \App\System\Router\Router;
 use \App\System\Settings;
 use \App\Models\UsersModel;
 
-ini_set('session.gc_maxlifetime', 1800);
-ini_set('session.cookie_lifetime', 1800);
 ini_set('session.cookie_httponly', true);
 
 session_start();
@@ -18,7 +16,9 @@ if(isset($_SESSION['LAST_ACTIVITY'])&& (($time - $_SESSION['LAST_ACTIVITY'])>$ti
     session_unset();
     session_destroy();
     session_start();
+    session_regenerate_id(true);
 }
+
 $_SESSION['LAST_ACTIVITY'] = $time;
 
 $app    = new App();
@@ -243,7 +243,7 @@ $router->post('/registration/', function() {
 //end routes for registration
 
 $router->get('/signout/', function() {
-    $controller = new \App\Controllers\UsersController();
+    $controller = new \App\Controllers\SessionsController();
     $controller->logout();
 });
 

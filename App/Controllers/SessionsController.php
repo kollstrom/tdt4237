@@ -34,6 +34,7 @@ class SessionsController extends Controller {
                 $_SESSION['password']   = $password;
 
                 App::redirect('dashboard');
+                session_regenerate_id(true);
             }
 
             else {
@@ -79,6 +80,8 @@ class SessionsController extends Controller {
     public function logout() {
         session_unset();
         session_destroy();
+        session_start();
+        session_regenerate_id(true);
         App::redirect();
     }
 
