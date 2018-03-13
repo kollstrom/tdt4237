@@ -48,6 +48,7 @@ class SessionsController extends Controller {
     }
 
     public function logout() {
+        session_unset();
         session_destroy();
         App::redirect();
     }

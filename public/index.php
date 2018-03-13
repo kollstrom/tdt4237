@@ -8,10 +8,11 @@ use \App\Models\UsersModel;
 
 ini_set('session.gc_maxlifetime', 1800);
 ini_set('session.cookie_lifetime', 1800);
+ini_set('session.cookie_httponly', true);
 
 session_start();
 $time = $_SERVER['REQUEST_TIME'];
-$timeout_duration = 1;
+$timeout_duration = 1800;
 
 if(isset($_SESSION['LAST_ACTIVITY'])&& (($time - $_SESSION['LAST_ACTIVITY'])>$timeout_duration )){
     session_unset();
