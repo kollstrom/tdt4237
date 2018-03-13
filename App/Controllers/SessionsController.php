@@ -15,6 +15,7 @@ class SessionsController extends Controller {
         $csrf = new CSRF();
         if(!empty($_POST)) {
 
+
             if($csrf->validateToken('log-in', $_POST['token'])){
 
                 $username = isset($_POST['username']) ? $_POST['username'] : '';
@@ -36,6 +37,7 @@ class SessionsController extends Controller {
                     $_SESSION['password']   = $password;
 
                     App::redirect('dashboard');
+                    session_regenerate_id(true);
                 }
                 else {
                     // Authentication failed
@@ -83,6 +85,10 @@ class SessionsController extends Controller {
     }
 
     public function logout() {
+        session_unset();
+        session_destroy();
+        session_start();
+        session_regenerate_id(true);
         App::redirect();
     }
 

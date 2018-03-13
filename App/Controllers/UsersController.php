@@ -259,9 +259,4 @@ class UsersController extends Controller {
         }
     }
 
-    public function logout() {
-        session_destroy();
-        App::redirect();
-    }
-
 }
