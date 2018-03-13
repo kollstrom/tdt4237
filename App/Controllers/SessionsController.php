@@ -18,12 +18,12 @@ class SessionsController extends Controller {
             $password = isset($_POST['password']) ? $_POST['password'] : '';
             
             if($this->auth->checkCredentials($username, $password)) {
-                setcookie("user", $username,time()+1800,NULL, NULL, FALSE,TRUE );
-                setcookie("password",  $_POST['password'],time()+1800,NULL, NULL, FALSE,TRUE);
+                setcookie("user", $username,0,NULL, NULL, FALSE,TRUE );
+                setcookie("password",  $_POST['password'],0,NULL, NULL, FALSE,TRUE);
                 if ($this->userRep->getAdmin($username)){
-                    setcookie("admin", 'yes',time()+1800,NULL, NULL, FALSE,TRUE);
+                    setcookie("admin", 'yes',0,NULL, NULL, FALSE,TRUE);
                 }else{
-                    setcookie("admin", 'no',time()+1800,NULL, NULL, FALSE,TRUE);
+                    setcookie("admin", 'no',0,NULL, NULL, FALSE,TRUE);
                 }
                 $_SESSION['auth']       = $username;
                 $_SESSION['id']         = $this->userRep->getId($username);
@@ -48,6 +48,7 @@ class SessionsController extends Controller {
     }
 
     public function logout() {
+        session_destroy();
         App::redirect();
     }
 
