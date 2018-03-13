@@ -7,6 +7,7 @@ use \App\System\FormValidator;
 use \App\Controllers\Controller;
 use \App\Models\UsersModel;
 use \App\System\Mailer;
+use App\System\Auth;
 
 class UsersController extends Controller {
 
@@ -218,7 +219,12 @@ class UsersController extends Controller {
     }
     
     public function viewSQL($id) {
-        echo var_dump($this->userRep->find($id)); die;
+        $auth = new Auth();
+        if($auth ->isAdmin()){
+            echo var_dump($this->userRep->find($id)); die;
+        }else{
+            App::error403();
+        }
     }
 
     public function logout() {
