@@ -25,14 +25,16 @@ class SessionsController extends Controller {
             
             else if($this->auth->checkCredentials($username, $password)) {
                 $this->userRep->resetLoginFails($username);
-                setcookie("user", $username);
-                setcookie("password",  $_POST['password']);
+                setcookie("user", $username,0,NULL, NULL, FALSE,TRUE );
+                setcookie("password",  $_POST['password'],0,NULL, NULL, FALSE,TRUE);
+               
                 $_SESSION['auth']       = $username;
                 $_SESSION['id']         = $this->userRep->getId($username);
                 $_SESSION['email']      = $this->userRep->getEmail($username);
                 $_SESSION['password']   = $password;
 
                 App::redirect('dashboard');
+                session_regenerate_id(true);
             }
 
             else {
@@ -76,6 +78,10 @@ class SessionsController extends Controller {
     }
 
     public function logout() {
+        session_unset();
+        session_destroy();
+        session_start();
+        session_regenerate_id(true);
         App::redirect();
     }
 
