@@ -105,7 +105,7 @@ class UsersController extends Controller {
 				$mailer->setFrom(Settings::getConfig()['mail']['from'], 'Mailer');
 				$mailer->addAddress($email);
 				$mailer->Subject = 'Hello ' . $username . '! Registration successful';
-                $mailer->msgHTML($content);
+                $mailer->msgHTML($payload);
                 $mailer->send();
                 return true;
             }else{
