@@ -18,7 +18,7 @@ alter table users add column locked boolean;
 - Stored xss
 - Make github project
 - Git workflow description
-- Lockout mechanism
+- Clickable links warning
 
 ### Daniel
 - Bypassing authentication
