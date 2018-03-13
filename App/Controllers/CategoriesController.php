@@ -80,8 +80,8 @@ class CategoriesController extends Controller {
             if($validator->isValid()) {
                 $model = new CategoriesModel();
                 $model->update($id, [
-                    'title'       => $title,
-                    'description' => $description
+                    'title'       => htmlspecialchars($title, ENT_QUOTES),
+                    'description' => htmlspecialchars($description, ENT_QUOTES)
                 ]);
 
                 $revisions = new RevisionsModel();
